@@ -1,0 +1,18 @@
+telegram:
+  # BotFather 提供的 Bot token。
+  bot-token: 'CHANGE_ME'
+  # 唯一可執行通過或拒絕操作的 Telegram 使用者 ID。
+  admin-user-id: 0
+  # 接收審核訊息的私人聊天 ID。
+  admin-chat-id: 0
+
+review:
+  rejection-cooldown-seconds: 15
+
+database:
+  # 相對於 plugins/WLBotPlugin 的路徑，不可使用絕對路徑或 ..。
+  file: 'whitelist-queue.db'
+
+polling:
+  # Telegram long polling timeout，可設定 1 到 50 秒。
+  timeout-seconds: 20

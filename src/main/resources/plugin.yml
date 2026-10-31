@@ -1,0 +1,7 @@
+name: WLBotPlugin
+version: '1.0.0'
+main: tw.cute.wlbot.WhitelistBotPlugin
+api-version: '26.3'
+folia-supported: true
+authors: [cute]
+description: Telegram-backed native whitelist review queue
