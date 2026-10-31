@@ -22,3 +22,5 @@
 - actionlint 1.7.12 靜態檢查通過；本機完整 clean build 再次通過。YAML 靜態設定依 TDD 例外以靜態分析及遠端執行替代 RED 測試，未新增外掛程式行為。
 - 已建立並推送 https://github.com/s12ryt/WL-bot-plugin（公開）；CI run 41161452308 成功，Release run 41161552240 成功發布 v1.0.0 JAR（14,703,982 bytes）及 SHA256SUMS.txt。
 - 首次遠端執行發現 Action Node 20 棄用警告，依各官方 release 更新 setup-java v6、upload-artifact v7、gradle/actions/setup-gradle v6。
+- 新版 Actions 驗證完成：CI 41161645938、手動 Release 41161645954 均成功；確認既有 Release 附件可更新，無 Node 20 棄用警告。
+- 下載 Release JAR 重新計算 SHA-256：`4857316224d1139023a03bf2491374df8c2dedaa57d96e537a4da73dae90ba65`，與 SHA256SUMS.txt 一致。

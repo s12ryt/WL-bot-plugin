@@ -28,6 +28,8 @@
 - [x] 建立公開儲存庫並推送；GitHub CI `41161452308` 成功。
 - [x] 推送 `v1.0.0`，Release `41161552240` 成功發布 JAR 與校驗碼。
 - [x] 依遠端棄用警告更新 setup-java v6、upload-artifact v7、setup-gradle v6。
+- [x] 新版 Actions：CI `41161645938` 與手動 Release `41161645954` 均成功。
+- [x] 從 Release 下載 JAR，實際 SHA-256 與發布的校驗碼一致。
 
 ## 尚待部署環境驗證
 
