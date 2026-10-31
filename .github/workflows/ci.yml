@@ -45,3 +45,41 @@ jobs:
           path: build/libs/*.jar
           if-no-files-found: error
           retention-days: 14
+
+  smoke-test:
+    name: Smoke test on ${{ matrix.flavor }} 26.3
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [paper, folia]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Download plugin JAR
+        uses: actions/download-artifact@v7
+        with:
+          name: WLBotPlugin
+          path: build/libs
+      - name: Run end-to-end smoke test (real server + mock Telegram)
+        run: >
+          java --add-modules jdk.httpserver
+          -cp build/libs/wl-bot-plugin-1.0.0.jar
+          ci/SmokeTestDriver.java ${{ matrix.flavor }}
+      - name: Upload smoke test logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-logs-${{ matrix.flavor }}
+          path: |
+            build/smoke/${{ matrix.flavor }}/run/logs/
+            build/smoke/${{ matrix.flavor }}/mock-requests.jsonl
+          if-no-files-found: warn
+          retention-days: 14

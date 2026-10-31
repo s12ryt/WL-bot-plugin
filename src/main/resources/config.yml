@@ -1,6 +1,9 @@
 telegram:
   # BotFather 提供的 Bot token。
   bot-token: 'CHANGE_ME'
+  # Telegram Bot API 基底 URL，一般情況保持預設即可；
+  # 僅測試或自架 API proxy 時才需要修改（必須是絕對 http/https URI）。
+  api-url: 'https://api.telegram.org'
   # 唯一可執行通過或拒絕操作的 Telegram 使用者 ID。
   admin-user-id: 0
   # 接收審核訊息的私人聊天 ID。

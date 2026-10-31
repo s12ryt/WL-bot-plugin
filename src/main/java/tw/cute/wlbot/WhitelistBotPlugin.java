@@ -26,7 +26,6 @@ import tw.cute.wlbot.telegram.TelegramPollingWorker;
 import tw.cute.wlbot.telegram.TelegramReviewProcessor;
 
 public final class WhitelistBotPlugin extends JavaPlugin {
-    private static final URI TELEGRAM_API = URI.create("https://api.telegram.org");
     private static final Duration NOTIFICATION_INTERVAL = Duration.ofSeconds(2);
 
     private SqliteQueueRepository repository;
@@ -76,7 +75,7 @@ public final class WhitelistBotPlugin extends JavaPlugin {
                 .build();
         TelegramHttpGateway telegram = new TelegramHttpGateway(
                 httpClient,
-                TELEGRAM_API,
+                settings.apiBaseUrl(),
                 settings.botToken(),
                 settings.adminChatId(),
                 codec);
@@ -115,10 +114,12 @@ public final class WhitelistBotPlugin extends JavaPlugin {
         if (token.equals("CHANGE_ME")) {
             throw new IllegalArgumentException("請先在 config.yml 設定 telegram.bot-token");
         }
+        URI apiBaseUrl = parseApiBaseUrl(config.getString("telegram.api-url"));
         String databaseFile = config.getString("database.file", "whitelist-queue.db");
         try {
             return new PluginSettings(
                     token,
+                    apiBaseUrl,
                     config.getLong("telegram.admin-user-id"),
                     config.getLong("telegram.admin-chat-id"),
                     Duration.ofSeconds(config.getLong("review.rejection-cooldown-seconds", 15L)),
@@ -126,6 +127,17 @@ public final class WhitelistBotPlugin extends JavaPlugin {
                     config.getInt("polling.timeout-seconds", 20));
         } catch (InvalidPathException exception) {
             throw new IllegalArgumentException("database.file 不是有效路徑", exception);
+        }
+    }
+
+    private static URI parseApiBaseUrl(String rawUrl) {
+        String candidate = (rawUrl == null || rawUrl.isBlank())
+                ? PluginSettings.DEFAULT_API_BASE.toString()
+                : rawUrl.trim();
+        try {
+            return URI.create(candidate);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("telegram.api-url 不是有效的 URI", exception);
         }
     }
 
