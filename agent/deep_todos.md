@@ -18,8 +18,6 @@
 - [x] 執行 33 項完整測試、Java 25 `-Xlint:all` 編譯與正式 fat JAR 建置。
 - [x] 檢查 JAR 內含主類別、`plugin.yml`、`config.yml`、SQLite 與 Gson，且不含測試類別。
 
-## 尚待部署環境驗證
-
 ## GitHub CI 與 Release（2026-10-31）
 
 - [x] 確認使用者授權建立 `s12ryt/WL-bot-plugin` 公開儲存庫。
@@ -27,8 +25,10 @@
 - [x] 加入標籤／手動 Release：版本核對、完整測試、JAR、SHA-256 校驗碼、可重跑附件上傳。
 - [x] actionlint 1.7.12 檢查兩份 workflow 通過。
 - [x] 本機重新執行 `gradlew.bat clean build --no-daemon` 通過。
-- [ ] 推送並確認 GitHub Actions CI 與 Release 實際執行結果。
+- [x] 建立公開儲存庫並推送；GitHub CI `41161452308` 成功。
+- [x] 推送 `v1.0.0`，Release `41161552240` 成功發布 JAR 與校驗碼。
+- [x] 依遠端棄用警告更新 setup-java v6、upload-artifact v7、setup-gradle v6。
 
-## 尚待部署環境驗證（續）
+## 尚待部署環境驗證
 
 - [ ] 在實際 Paper 26.3 測試服完成一次玩家申請、Telegram 通過／拒絕與重啟持久化煙霧測試。

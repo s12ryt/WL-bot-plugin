@@ -20,3 +20,5 @@
 - 使用者要求 GitHub CI 及 JAR Releases workflow，確認授權建立公開 `s12ryt/WL-bot-plugin` 儲存庫。
 - 新增 CI 與 Release workflow；兩者使用 Java 25 與 Gradle Wrapper，發布前核對標籤和兩處版本。
 - actionlint 1.7.12 靜態檢查通過；本機完整 clean build 再次通過。YAML 靜態設定依 TDD 例外以靜態分析及遠端執行替代 RED 測試，未新增外掛程式行為。
+- 已建立並推送 https://github.com/s12ryt/WL-bot-plugin（公開）；CI run 41161452308 成功，Release run 41161552240 成功發布 v1.0.0 JAR（14,703,982 bytes）及 SHA256SUMS.txt。
+- 首次遠端執行發現 Action Node 20 棄用警告，依各官方 release 更新 setup-java v6、upload-artifact v7、gradle/actions/setup-gradle v6。
