@@ -85,6 +85,19 @@ polling:
 - 拒絕：進入冷卻（預設 15 秒，可用 `review.rejection-cooldown-seconds` 調整），期間無法再次申請。
 - Telegram 刪除訊息受 Bot API 的 48 小時限制；刪除失敗不會回滾已完成的審核結果。
 
+## 遊戲內指令
+
+外掛提供 `/wl-bot` 管理指令，需要 `wlbot.admin` 權限（預設僅 OP）。兩個子指令都支援 Tab 補全：
+
+| 指令 | 說明 |
+| --- | --- |
+| `/wl-bot reload` | 重新讀取 `config.yml` 並重建機器人執行環境（SQLite 佇列保留）。新設定驗證或初始化失敗時，自動回復舊設定繼續運行，並在回覆與 log 中說明原因。 |
+| `/wl-bot del <玩家名>` | 將玩家移出白名單。玩家名不分大小寫，比對對象為目前白名單中的玩家。 |
+
+- 補全行為：輸入 `/wl-bot ` 後補全子命令（`del` / `reload`）；輸入 `/wl-bot del ` 後補全目前白名單中的玩家名（不分大小寫前綴比對、依字母排序）。
+- `del` 的白名單寫入與移除都經 `GlobalRegionScheduler` 執行，Folia 安全；移除後該玩家再次連線會回到申請流程。
+- 權限 `wlbot.admin` 已在 `plugin.yml` 宣告，可透過權限外掛（如 LuckPerms）授予其他管理者。
+
 ## 資料儲存
 
 - 佇列存放於 `plugins/WLBotPlugin/whitelist-queue.db`（SQLite，WAL 模式）。
@@ -125,8 +138,9 @@ java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.0.0.jar ci/Smok
 
 ```
 src/main/java/tw/cute/wlbot/
-├── WhitelistBotPlugin        # 主類：設定載入、元件裝配、生命週期
+├── WhitelistBotPlugin        # 主類：設定載入、元件裝配、生命週期、/wl-bot 指令接線
 ├── config/PluginSettings     # 設定值與驗證（record）
+├── command/                  # /wl-bot 指令：服務層邏輯＋Bukkit executor/TabCompleter
 ├── WhitelistLoginListener    # 攔截 ProfileWhitelistVerifyEvent，建立申請
 ├── PendingNotifier           # 將未通知的申請推送至 Telegram
 ├── TelegramPollingWorker     # Bot API long-polling，收取審核按鈕
