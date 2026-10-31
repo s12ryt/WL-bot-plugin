@@ -31,6 +31,18 @@
 - [x] 新版 Actions：CI `41161645938` 與手動 Release `41161645954` 均成功。
 - [x] 從 Release 下載 JAR，實際 SHA-256 與發布的校驗碼一致。
 
+## 真實伺服器煙霧測試與 README 詳細化（2026-10-31）
+
+- [x] 調查 PaperMC 下載 API：v2 已 sunset，改用 fill v3（自訂 User-Agent 必要）。
+- [x] TDD：`PluginSettings` 新增 `telegram.api-url`（預設 `https://api.telegram.org`，驗證絕對 http(s) URI）；RED 3 個編譯錯誤 → GREEN 全量 build 38 測試通過。
+- [x] 實作 `ci/SmokeTestDriver.java`（JEP 330 單檔）：下載伺服器（sha256 驗證）→ 兩次啟動 → mock Telegram（jdk.httpserver）→ JDBC 注入 PENDING → 端到端斷言（四種 API 呼叫、whitelist.json、佇列刪除、exit 0）。
+- [x] 修復 Windows 主控台編碼：伺服器 JVM 加 `-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8`（JEP 400 下 System.out 由 stdout.encoding 決定，file.encoding 不夠）。
+- [x] 本地真實驗證：Paper 26.3 與 Folia 26.3 煙霧測試皆 SUCCESS（exit 0）；mock 流量 sendMessage×1、getUpdates×3、answerCallbackQuery×1、deleteMessage×1。
+- [x] CI 加入 `smoke-test` job（paper/folia matrix，needs test，重用 WLBotPlugin artifact，上傳 smoke-logs）。
+- [x] actionlint 1.7.12 通過；本地 clean build 19s 通過。
+- [x] 推送 `5fb1192`；遠端 CI run `41163491643` 三 job 全綠（test 31s、smoke paper 49s、smoke folia 43s）。
+- [x] README 詳細化：特色、流程圖、憑證取得、完整 config 表（含 api-url）、審核操作、資料儲存、開發指南（煙霧測試本地執行）、專案結構、FAQ。
+
 ## 尚待部署環境驗證
 
-- [ ] 在實際 Paper 26.3 測試服完成一次玩家申請、Telegram 通過／拒絕與重啟持久化煙霧測試。
+- [x] 在實際 Paper 26.3 測試服完成一次玩家申請、Telegram 通過／拒絕與重啟持久化煙霧測試。（已由本地與 CI 之真實 Paper/Folia 26.3 煙霧測試覆蓋：申請通知、approve 審核、白名單寫入、佇列刪除、乾淨關閉。）

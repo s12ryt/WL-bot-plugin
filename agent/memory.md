@@ -24,3 +24,15 @@
 - 首次遠端執行發現 Action Node 20 棄用警告，依各官方 release 更新 setup-java v6、upload-artifact v7、gradle/actions/setup-gradle v6。
 - 新版 Actions 驗證完成：CI 41161645938、手動 Release 41161645954 均成功；確認既有 Release 附件可更新，無 Node 20 棄用警告。
 - 下載 Release JAR 重新計算 SHA-256：`4857316224d1139023a03bf2491374df8c2dedaa57d96e537a4da73dae90ba65`，與 SHA256SUMS.txt 一致。
+
+## 2026-10-31（煙霧測試與 README）
+
+- 實測 PaperMC 下載 API：`api.papermc.io/v2` 已 sunset；新端點 `https://fill.papermc.io/v3/projects/{paper|folia}/versions/26.3/builds/latest` 必須帶自訂 User-Agent，下載網域 fill-data.papermc.io，`.downloads."server:default"` 含 url 與 sha256。
+- TDD 加入 `telegram.api-url`（PluginSettings 第 2 參數 URI apiBaseUrl + DEFAULT_API_BASE；WhitelistBotPlugin.parseApiBaseUrl；config.yml 預設值）：RED 3 編譯錯誤 → GREEN 38 測試全過。
+- 新增 `ci/SmokeTestDriver.java`（約 600 行 JEP 330 單檔）：常數見檔頭；ServerProcess 以 virtual thread 讀主控台寫 `run/logs/smoke-<tag>-console.log` 並掃 `Done (`；MockTelegram 監聽 127.0.0.1:18080（sendMessage→message_id 777；getUpdates 在 sendMessage 後回 approve callback update_id 1000，之後回空並 sleep 2s 節流；全部請求記 mock-requests.jsonl）。
+- 關鍵修復：Windows 上 Paper 主控台與 log4j 輸出中文皆亂碼——伺服器 JVM 需加 `-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8`（JEP 400：System.out 由 stdout.encoding 決定，僅 file.encoding 無效）。
+- 修正 driver race：reader lambda 原經 holder[0] 取容器（start 後才賦值會 NPE），改為先建局部 AtomicBoolean/List 再傳入 ServerProcess。
+- 本地驗證：paper 與 folia 皆 `SUCCESS ... (exit 0)`；mock 流量 sendMessage×1、getUpdates×3、answerCallbackQuery×1、deleteMessage×1；whitelist.json 含測試 UUID、佇列列已刪、伺服器 exit 0。
+- ci.yml 加 `smoke-test` job（needs test、matrix paper/folia、download-artifact WLBotPlugin→build/libs、always 上傳 smoke-logs-<flavor>）；actionlint 1.7.12 無發現；clean build 19s。
+- 提交 `5fb1192` 推送；遠端 CI run `41163491643` 全綠：test 31s、smoke paper 49s、smoke folia 43s，artifacts 含 smoke-logs-paper/folia。
+- README 詳細化（29 行→約 150 行）：特色、流程圖、BotFather/userinfobot 憑證取得、config 全表（含 api-url 與驗證行為）、審核操作、SQLite schema、開發（單元測試＋煙霧測試本地執行指令）、專案結構、CI/Release 更新、FAQ；FAQ 重啟行為依 findUnnotified（message_id IS NULL 才重送）修正措辭。
