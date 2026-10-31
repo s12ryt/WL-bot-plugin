@@ -71,7 +71,7 @@ jobs:
       - name: Run end-to-end smoke test (real server + mock Telegram)
         run: >
           java --add-modules jdk.httpserver
-          -cp build/libs/wl-bot-plugin-1.0.0.jar
+          -cp build/libs/wl-bot-plugin-*.jar
           ci/SmokeTestDriver.java ${{ matrix.flavor }}
       - name: Upload smoke test logs
         if: always()
