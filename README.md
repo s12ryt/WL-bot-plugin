@@ -41,7 +41,7 @@ PendingNotifier（每 2 秒）──► Telegram：申請訊息＋[✅ 通過] [
 ## 安裝
 
 1. 執行 `gradlew.bat clean build`（或直接從 [Releases](https://github.com/s12ryt/WL-bot-plugin/releases) 下載 JAR）。
-2. 將 `build/libs/wl-bot-plugin-1.0.0.jar` 放入伺服器的 `plugins` 目錄。
+2. 將 `build/libs/wl-bot-plugin-1.1.0.jar` 放入伺服器的 `plugins` 目錄。
 3. 確認 `server.properties` 中 `white-list=true`，啟動一次伺服器以產生 `plugins/WLBotPlugin/config.yml`。
 4. 停止伺服器，填入 Bot token、管理員 Telegram 使用者 ID 與私人聊天 ID（見下方設定說明）。
 5. 再次啟動伺服器。Log 出現「WLBotPlugin 已啟用，等待白名單申請。」即安裝完成。
@@ -112,7 +112,7 @@ polling:
 ./gradlew clean build --no-daemon
 ```
 
-產出 fat JAR：`build/libs/wl-bot-plugin-1.0.0.jar`。測試報告在 `build/reports/tests/test/`。
+產出 fat JAR：`build/libs/wl-bot-plugin-1.1.0.jar`。測試報告在 `build/reports/tests/test/`。
 
 ### 端到端煙霧測試（真實伺服器 + mock Telegram）
 
@@ -128,8 +128,8 @@ polling:
 
 ```bash
 ./gradlew clean build --no-daemon
-java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.0.0.jar ci/SmokeTestDriver.java paper
-java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.0.0.jar ci/SmokeTestDriver.java folia
+java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.1.0.jar ci/SmokeTestDriver.java paper
+java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.1.0.jar ci/SmokeTestDriver.java folia
 ```
 
 失敗時伺服器 log 與 mock 請求記錄（`build/smoke/<flavor>/`）會保留供排查；成功則印出 `SUCCESS` 並以 exit 0 結束。

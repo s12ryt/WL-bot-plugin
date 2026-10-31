@@ -4,8 +4,8 @@
 // 做端到端驗證：pending 申請 → 通知 admin → callback 審核 → 玩家進白名單 → 佇列列刪除。
 //
 // 執行（於專案根目錄，先 ./gradlew build 產出 fat JAR）：
-//   java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.0.0.jar ci/SmokeTestDriver.java paper
-//   java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.0.0.jar ci/SmokeTestDriver.java folia
+//   java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.1.0.jar ci/SmokeTestDriver.java paper
+//   java --add-modules jdk.httpserver -cp build/libs/wl-bot-plugin-1.1.0.jar ci/SmokeTestDriver.java folia
 //
 // 依賴：fat JAR 內的 org.sqlite（JDBC 注入用）與 gson（解析 fill API），
 //       jdk.httpserver 模組提供 mock HTTP 伺服器。
@@ -51,6 +51,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 public class SmokeTestDriver {
 
@@ -66,7 +67,7 @@ public class SmokeTestDriver {
     static final String PLAYER_NAME = "SmokeTester";
     static final Duration DONE_TIMEOUT_PAPER = Duration.ofSeconds(300);
     static final Duration DONE_TIMEOUT_FOLIA = Duration.ofSeconds(420);
-    static final String USER_AGENT = "WLBotPlugin-CI/1.0.0 (https://github.com/s12ryt/WL-bot-plugin)";
+    static final String USER_AGENT = "WLBotPlugin-CI/1.1.0 (https://github.com/s12ryt/WL-bot-plugin)";
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1 || !(args[0].equals("paper") || args[0].equals("folia"))) {
@@ -191,12 +192,27 @@ public class SmokeTestDriver {
         System.out.println("[smoke] run 目錄就緒: " + runDir.toAbsolutePath());
     }
 
+    static final Pattern PLUGIN_JAR_NAME = Pattern.compile("wl-bot-plugin-\\d+\\.\\d+\\.\\d+\\.jar");
+
     static Path pluginJar() throws IOException {
-        Path p = Path.of("build", "libs", "wl-bot-plugin-1.0.0.jar");
-        if (!Files.exists(p)) {
-            throw new FileNotFoundException("找不到 " + p.toAbsolutePath() + "，請先執行 ./gradlew build");
+        Path libs = Path.of("build", "libs");
+        List<Path> matches = new ArrayList<>();
+        if (Files.isDirectory(libs)) {
+            try (var stream = Files.list(libs)) {
+                stream.filter(Files::isRegularFile)
+                        .filter(p -> PLUGIN_JAR_NAME.matcher(p.getFileName().toString()).matches())
+                        .forEach(matches::add);
+            }
         }
-        return p;
+        if (matches.isEmpty()) {
+            throw new FileNotFoundException(
+                    "在 " + libs.toAbsolutePath() + " 找不到 wl-bot-plugin-<版本>.jar，請先執行 ./gradlew build");
+        }
+        if (matches.size() > 1) {
+            matches.sort(Comparator.comparing(Path::getFileName));
+            throw new IOException("build/libs 內有多個外掛 JAR，無法判斷要測哪一個：" + matches + "；請先 ./gradlew clean");
+        }
+        return matches.get(0);
     }
 
     static Path pluginData(Path runDir, String name) {
