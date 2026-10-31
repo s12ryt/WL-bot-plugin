@@ -2,8 +2,10 @@ package tw.cute.wlbot.telegram;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +28,7 @@ class TelegramReviewProcessorTest {
                 request -> {
                     capturedRequest.set(request);
                     return CompletableFuture.completedFuture(ReviewOutcome.APPROVED);
-                }, gateway, new CallbackDataCodec(), (message, error) -> { });
+                }, gateway, new CallbackDataCodec(), (message, error) -> { }, Duration.ofSeconds(10));
 
         processor.process(callback("approve:" + PLAYER_UUID));
 
@@ -83,7 +85,7 @@ class TelegramReviewProcessorTest {
                 request -> {
                     capturedRequest.set(request);
                     return CompletableFuture.completedFuture(ReviewOutcome.APPROVED);
-                }, gateway, new CallbackDataCodec(), (message, error) -> { });
+                }, gateway, new CallbackDataCodec(), (message, error) -> { }, Duration.ofSeconds(10));
 
         processor.process(callback("broken-data"));
 
@@ -93,13 +95,34 @@ class TelegramReviewProcessorTest {
         assertTrue(gateway.deletedMessages.isEmpty());
     }
 
+    @Test
+    void reviewThatNeverCompletesTimesOutWithAFriendlyAnswerInsteadOfBlockingForever() {
+        RecordingGateway gateway = new RecordingGateway();
+        ArrayList<Throwable> errors = new ArrayList<>();
+        TelegramReviewProcessor processor = new TelegramReviewProcessor(
+                request -> new CompletableFuture<>(),
+                gateway,
+                new CallbackDataCodec(),
+                (message, error) -> errors.add(error),
+                Duration.ofMillis(150));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(5),
+                () -> processor.process(callback("approve:" + PLAYER_UUID)));
+
+        assertEquals("審核處理失敗，請稍後重試。", gateway.answers.getFirst().text());
+        assertTrue(gateway.answers.getFirst().showAlert());
+        assertTrue(gateway.deletedMessages.isEmpty());
+        assertEquals(1, errors.size());
+    }
+
     private static TelegramReviewProcessor processorFor(
             ReviewOutcome outcome, RecordingGateway gateway, List<Throwable> errors) {
         return new TelegramReviewProcessor(
                 request -> CompletableFuture.completedFuture(outcome),
                 gateway,
                 new CallbackDataCodec(),
-                (message, error) -> errors.add(error));
+                (message, error) -> errors.add(error),
+                Duration.ofSeconds(10));
     }
 
     private static TelegramCallback callback(String data) {

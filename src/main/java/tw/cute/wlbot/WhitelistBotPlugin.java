@@ -90,7 +90,7 @@ public final class WhitelistBotPlugin extends JavaPlugin {
                 settings.rejectionCooldown(),
                 Clock.systemUTC());
         TelegramReviewProcessor reviewProcessor = new TelegramReviewProcessor(
-                reviewService, telegram, codec, errors);
+                reviewService, telegram, codec, errors, Duration.ofSeconds(10));
         TelegramPollingWorker pollingWorker = new TelegramPollingWorker(
                 telegram, reviewProcessor, errors);
         PendingNotifier notifier = new PendingNotifier(openedRepository, telegram, errors);

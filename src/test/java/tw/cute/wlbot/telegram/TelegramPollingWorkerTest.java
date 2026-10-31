@@ -25,7 +25,7 @@ class TelegramPollingWorkerTest {
                 request -> {
                     reviews.add(ReviewOutcome.UNAUTHORIZED);
                     return CompletableFuture.completedFuture(ReviewOutcome.UNAUTHORIZED);
-                }, gateway, new CallbackDataCodec(), (message, error) -> { });
+                }, gateway, new CallbackDataCodec(), (message, error) -> { }, java.time.Duration.ofSeconds(10));
         TelegramPollingWorker worker = new TelegramPollingWorker(gateway, processor, (message, error) -> { });
 
         worker.pollOnce(20);

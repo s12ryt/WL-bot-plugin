@@ -22,9 +22,11 @@ import tw.cute.wlbot.review.ReviewAction;
 
 public final class TelegramHttpGateway implements TelegramGateway {
     private static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(30);
+    private static final String REDACTED_TOKEN = "**redacted**";
 
     private final HttpClient httpClient;
     private final String apiRoot;
+    private final String botToken;
     private final long targetChatId;
     private final CallbackDataCodec codec;
     private final Gson gson = new Gson();
@@ -49,6 +51,13 @@ public final class TelegramHttpGateway implements TelegramGateway {
         String base = baseApiUri.toString();
         this.apiRoot = (base.endsWith("/") ? base.substring(0, base.length() - 1) : base)
                 + "/bot" + botToken + "/";
+        try {
+            URI.create(this.apiRoot + "getMe");
+        } catch (IllegalArgumentException invalidUrl) {
+            throw new IllegalArgumentException(
+                    "Telegram bot token contains characters that are invalid in a request URL");
+        }
+        this.botToken = botToken;
         this.targetChatId = targetChatId;
         this.codec = Objects.requireNonNull(codec, "codec");
     }
@@ -168,9 +177,9 @@ public final class TelegramHttpGateway implements TelegramGateway {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new TelegramApiException("Telegram request was interrupted", exception);
+            throw new TelegramApiException("Telegram request was interrupted", sanitized(exception));
         } catch (IOException exception) {
-            throw new TelegramApiException("Telegram request failed", exception);
+            throw new TelegramApiException("Telegram request failed", sanitized(exception));
         }
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new TelegramApiException("Telegram returned HTTP " + response.statusCode());
@@ -190,6 +199,31 @@ public final class TelegramHttpGateway implements TelegramGateway {
         } catch (JsonParseException | IllegalStateException exception) {
             throw new TelegramApiException("Telegram returned invalid JSON", exception);
         }
+    }
+
+    private Throwable sanitized(Throwable error) {
+        if (error == null || !chainMentionsToken(error)) {
+            return error;
+        }
+        IOException scrubbed = new IOException(redact(error.getMessage()));
+        Throwable cause = error.getCause();
+        if (cause != null) {
+            scrubbed.initCause(sanitized(cause));
+        }
+        return scrubbed;
+    }
+
+    private boolean chainMentionsToken(Throwable error) {
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            if (current.getMessage() != null && current.getMessage().contains(botToken)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String redact(String message) {
+        return message == null ? null : message.replace(botToken, REDACTED_TOKEN);
     }
 
     private static long requiredLong(JsonObject object, String property) {

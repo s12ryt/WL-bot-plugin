@@ -1,6 +1,8 @@
 package tw.cute.wlbot.telegram;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import tw.cute.wlbot.review.ReviewOutcome;
 import tw.cute.wlbot.review.ReviewRequest;
 import tw.cute.wlbot.review.ReviewUseCase;
@@ -10,16 +12,23 @@ public final class TelegramReviewProcessor {
     private final TelegramGateway gateway;
     private final CallbackDataCodec codec;
     private final ErrorReporter errorReporter;
+    private final Duration reviewTimeout;
 
     public TelegramReviewProcessor(
             ReviewUseCase reviewUseCase,
             TelegramGateway gateway,
             CallbackDataCodec codec,
-            ErrorReporter errorReporter) {
+            ErrorReporter errorReporter,
+            Duration reviewTimeout) {
         this.reviewUseCase = Objects.requireNonNull(reviewUseCase, "reviewUseCase");
         this.gateway = Objects.requireNonNull(gateway, "gateway");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.errorReporter = Objects.requireNonNull(errorReporter, "errorReporter");
+        Objects.requireNonNull(reviewTimeout, "reviewTimeout");
+        if (reviewTimeout.isZero() || reviewTimeout.isNegative()) {
+            throw new IllegalArgumentException("reviewTimeout must be positive");
+        }
+        this.reviewTimeout = reviewTimeout;
     }
 
     public void process(TelegramCallback callback) {
@@ -39,6 +48,7 @@ public final class TelegramReviewProcessor {
                             decoded.playerUuid(),
                             decoded.action()))
                     .toCompletableFuture()
+                    .orTimeout(reviewTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .join();
         } catch (RuntimeException exception) {
             errorReporter.report("Telegram 白名單審核失敗", exception);

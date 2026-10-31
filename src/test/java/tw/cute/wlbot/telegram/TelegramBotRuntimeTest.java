@@ -19,7 +19,8 @@ class TelegramBotRuntimeTest {
                 request -> CompletableFuture.completedFuture(ReviewOutcome.STALE),
                 gateway,
                 new CallbackDataCodec(),
-                (message, error) -> { });
+                (message, error) -> { },
+                Duration.ofSeconds(10));
         TelegramPollingWorker worker = new TelegramPollingWorker(gateway, processor, (message, error) -> { });
         CountDownLatch notified = new CountDownLatch(1);
         TelegramBotRuntime runtime = new TelegramBotRuntime(
