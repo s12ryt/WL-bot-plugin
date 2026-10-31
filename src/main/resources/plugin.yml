@@ -5,3 +5,12 @@ api-version: '26.3'
 folia-supported: true
 authors: [cute]
 description: Telegram-backed native whitelist review queue
+commands:
+  wl-bot:
+    description: WLBotPlugin 管理指令（重載設定、移除白名單玩家）
+    usage: '/wl-bot <reload | del <玩家名>>'
+    permission: wlbot.admin
+permissions:
+  wlbot.admin:
+    description: 允許重載 WLBotPlugin 設定與管理白名單
+    default: op
